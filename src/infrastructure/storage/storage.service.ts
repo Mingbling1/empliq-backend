@@ -67,7 +67,7 @@ export class StorageService {
       
       const response = await fetch(uploadUrl, {
         method: 'PUT',
-        body: fileBuffer,
+        body: new Uint8Array(fileBuffer),
         headers: {
           'Content-Type': contentType,
           'Content-Length': fileBuffer.length.toString(),
