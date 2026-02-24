@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// Auth — Supabase (GoTrue) manages auth.users
+// Profile mirrors the Supabase user for app data
+// ==========================================
+
+/// Perfil de usuario vinculado a Supabase auth.users.
+/// Se crea automáticamente tras el primer login con Google OAuth.
+/// El id coincide con auth.users.id de Supabase.
+model Profile {
+  id        String   @id @db.Uuid
+  email     String?
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  role      String   @default("user")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  salaries   Salary[]
+  reviews    Review[]
+  interviews Interview[]
+
+  @@map("profiles")
+}
+
+// ==========================================
+// App Models — levels.fyi para Perú
+// ==========================================
+
+/// Empresa registrada en la plataforma.
+/// Datos iniciales vienen de empliq_dev (scraper), luego se enriquecen.
+model Company {
+  id            String   @id @default(uuid()) @db.Uuid
+  ruc           String?  @unique @db.VarChar(11)
+  name          String
+  slug          String   @unique
+  description   String?  @db.Text
+  industry      String?
+  employeeCount Int?     @map("employee_count")
+  location      String?
+  website       String?
+  logoUrl       String?  @map("logo_url")
+  foundedYear   Int?     @map("founded_year")
+  isVerified    Boolean  @default(false) @map("is_verified")
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  positions Position[]
+  benefits  Benefit[]
+  reviews   Review[]
+
+  @@index([ruc])
+  @@index([slug])
+  @@index([name])
+  @@map("companies")
+}
+
+/// Categoría de puestos de trabajo para agrupar salarios.
+/// Ej: Tecnología, Ingeniería, Finanzas, Marketing, etc.
+model JobCategory {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  icon        String? // Nombre de icono Lucide para el UI
+
+  positions Position[]
+
+  @@map("job_categories")
+}
+
+/// Puesto de trabajo dentro de una empresa.
+/// Vinculado a una categoría para el navegador global de salarios.
+model Position {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  categoryId  String?  @map("category_id") @db.Uuid
+  title       String
+  slug        String
+  description String?  @db.Text
+  level       String?  // Junior, Mid, Senior, Lead, Manager, Director
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category   JobCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  salaries   Salary[]
+  reviews    Review[]
+  interviews Interview[]
+
+  @@unique([companyId, slug])
+  @@index([title])
+  @@map("positions")
+}
+
+/// Reporte de salario anónimo para un puesto.
+/// Se muestra la media y rango, nunca valores individuales.
+model Salary {
+  id              String   @id @default(uuid()) @db.Uuid
+  positionId      String   @map("position_id") @db.Uuid
+  profileId       String   @map("profile_id") @db.Uuid
+  amount          Decimal  @db.Decimal(12, 2)
+  currency        String   @default("PEN")
+  period          String   @default("monthly") // monthly, yearly
+  yearsExperience Int?     @map("years_experience")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("salaries")
+}
+
+/// Review/comentario anónimo sobre una empresa o puesto.
+/// Puede ser a nivel empresa (general) o sobre un puesto específico.
+model Review {
+  id                String   @id @default(uuid()) @db.Uuid
+  companyId         String   @map("company_id") @db.Uuid
+  positionId        String?  @map("position_id") @db.Uuid
+  profileId         String   @map("profile_id") @db.Uuid
+  rating            Int      // 1-5
+  title             String?
+  pros              String?  @db.Text
+  cons              String?  @db.Text
+  isCurrentEmployee Boolean  @default(false) @map("is_current_employee")
+  isVerified        Boolean  @default(false) @map("is_verified")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  position Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  profile  Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+/// Experiencia de entrevista anónima para un puesto.
+model Interview {
+  id         String   @id @default(uuid()) @db.Uuid
+  positionId String   @map("position_id") @db.Uuid
+  profileId  String   @map("profile_id") @db.Uuid
+  process    String?  @db.Text
+  questions  String[]
+  difficulty String?  // Easy, Medium, Hard
+  duration   String?
+  result     String?  // Accepted, Rejected, No Response
+  tips       String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("interviews")
+}
+
+/// Beneficio que ofrece una empresa.
+/// Categorizados: Salud, Financiero, Work-Life, Desarrollo, etc.
+model Benefit {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  name        String
+  category    String?  // Health, Financial, WorkLife, Development, Other
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("benefits")
+}
