@@ -19,14 +19,16 @@ model Profile {
   id        String   @id @db.Uuid
   email     String?
   name      String?
+  nickname  String?  @unique
   avatarUrl String?  @map("avatar_url")
   role      String   @default("user")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  salaries   Salary[]
-  reviews    Review[]
-  interviews Interview[]
+  salaries    Salary[]
+  reviews     Review[]
+  interviews  Interview[]
+  reviewVotes ReviewVote[]
 
   @@map("profiles")
 }
@@ -134,13 +136,29 @@ model Review {
   cons              String?  @db.Text
   isCurrentEmployee Boolean  @default(false) @map("is_current_employee")
   isVerified        Boolean  @default(false) @map("is_verified")
+  helpfulCount      Int      @default(0) @map("helpful_count")
   createdAt         DateTime @default(now()) @map("created_at")
 
-  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  position Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
-  profile  Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  company  Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  position Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  profile  Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  votes    ReviewVote[]
 
   @@map("reviews")
+}
+
+/// Voto de "útil" en una reseña. Un usuario solo puede votar una vez por reseña.
+model ReviewVote {
+  id        String   @id @default(uuid()) @db.Uuid
+  reviewId  String   @map("review_id") @db.Uuid
+  profileId String   @map("profile_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  review  Review  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, profileId])
+  @@map("review_votes")
 }
 
 /// Experiencia de entrevista anónima para un puesto.
