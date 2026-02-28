@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Company } from '../../../domain/entities';
-import { ICompanyRepository, FindAllOptions, PaginatedResult } from '../../../domain/repositories';
+import { ICompanyRepository, FindAllOptions, PaginatedResult, CompanySlug } from '../../../domain/repositories';
 
 @Injectable()
 export class CompanyRepositoryImpl implements ICompanyRepository {
@@ -58,6 +58,14 @@ export class CompanyRepositoryImpl implements ICompanyRepository {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findAllSlugs(): Promise<CompanySlug[]> {
+    const companies = await this.prisma.company.findMany({
+      select: { slug: true, updatedAt: true },
+      orderBy: { slug: 'asc' },
+    });
+    return companies.map((c) => ({ slug: c.slug, updatedAt: c.updatedAt }));
   }
 
   async findById(id: string): Promise<Company | null> {

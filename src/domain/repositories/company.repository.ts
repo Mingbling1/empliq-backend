@@ -20,8 +20,14 @@ export interface FindAllOptions {
   location?: string;
 }
 
+export interface CompanySlug {
+  slug: string;
+  updatedAt: Date;
+}
+
 export interface ICompanyRepository {
   findAll(options?: FindAllOptions): Promise<PaginatedResult<Company>>;
+  findAllSlugs(): Promise<CompanySlug[]>;
   findById(id: string): Promise<Company | null>;
   findBySlug(slug: string): Promise<Company | null>;
   create(company: Partial<Company>): Promise<Company>;

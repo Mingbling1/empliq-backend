@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/s
 import {
   GetCompaniesUseCase,
   GetCompanyBySlugUseCase,
+  GetCompanySlugsUseCase,
   CreateCompanyUseCase,
   UpdateCompanyUseCase,
 } from '../../../application/use-cases';
@@ -25,6 +26,7 @@ export class CompaniesController {
   constructor(
     private readonly getCompanies: GetCompaniesUseCase,
     private readonly getCompanyBySlug: GetCompanyBySlugUseCase,
+    private readonly getCompanySlugs: GetCompanySlugsUseCase,
     private readonly createCompany: CreateCompanyUseCase,
     private readonly updateCompany: UpdateCompanyUseCase,
   ) {}
@@ -93,6 +95,13 @@ export class CompaniesController {
       logo: dto.logo,
       removeLogo: dto.removeLogo,
     });
+  }
+
+  @Get('slugs')
+  @ApiOperation({ summary: 'Get all company slugs for sitemap generation' })
+  @ApiResponse({ status: 200, description: 'Array of {slug, updatedAt} for all companies' })
+  async findAllSlugs() {
+    return this.getCompanySlugs.execute();
   }
 
   @Get(':slug')

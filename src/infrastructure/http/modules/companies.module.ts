@@ -3,6 +3,7 @@ import { CompaniesController } from '../controllers/companies.controller';
 import {
   GetCompaniesUseCase,
   GetCompanyBySlugUseCase,
+  GetCompanySlugsUseCase,
   CreateCompanyUseCase,
   UpdateCompanyUseCase,
 } from '../../../application/use-cases';
@@ -14,6 +15,7 @@ import { COMPANY_REPOSITORY } from '../../../domain/repositories';
   providers: [
     GetCompaniesUseCase,
     GetCompanyBySlugUseCase,
+    GetCompanySlugsUseCase,
     CreateCompanyUseCase,
     UpdateCompanyUseCase,
     {
