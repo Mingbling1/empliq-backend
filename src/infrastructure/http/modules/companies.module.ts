@@ -6,6 +6,8 @@ import {
   GetCompanySlugsUseCase,
   CreateCompanyUseCase,
   UpdateCompanyUseCase,
+  UpsertCompanyUseCase,
+  BulkUpsertCompaniesUseCase,
 } from '../../../application/use-cases';
 import { CompanyRepositoryImpl } from '../../persistence/repositories';
 import { COMPANY_REPOSITORY } from '../../../domain/repositories';
@@ -18,6 +20,8 @@ import { COMPANY_REPOSITORY } from '../../../domain/repositories';
     GetCompanySlugsUseCase,
     CreateCompanyUseCase,
     UpdateCompanyUseCase,
+    UpsertCompanyUseCase,
+    BulkUpsertCompaniesUseCase,
     {
       provide: COMPANY_REPOSITORY,
       useClass: CompanyRepositoryImpl,

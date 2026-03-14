@@ -7,6 +7,8 @@ export * from './add-salary.use-case';
 export * from './create-company.use-case';
 export * from './create-position.use-case';
 export * from './update-company.use-case';
+export * from './upsert-company.use-case';
+export * from './bulk-upsert-companies.use-case';
 export * from './get-or-create-profile.use-case';
 export * from './update-profile-avatar.use-case';
 export * from './update-profile-nickname.use-case';

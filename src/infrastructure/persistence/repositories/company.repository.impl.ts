@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Company } from '../../../domain/entities';
-import { ICompanyRepository, FindAllOptions, PaginatedResult, CompanySlug } from '../../../domain/repositories';
+import { ICompanyRepository, FindAllOptions, PaginatedResult, CompanySlug, UpsertCompanyData, BulkUpsertResult } from '../../../domain/repositories';
 
 @Injectable()
 export class CompanyRepositoryImpl implements ICompanyRepository {
@@ -89,6 +89,22 @@ export class CompanyRepositoryImpl implements ICompanyRepository {
     return company ? this.toDomain(company) : null;
   }
 
+  async findByRuc(ruc: string): Promise<Company | null> {
+    const company = await this.prisma.company.findUnique({
+      where: { ruc },
+      include: {
+        _count: {
+          select: {
+            positions: true,
+            reviews: true,
+            benefits: true,
+          },
+        },
+      },
+    });
+    return company ? this.toDomain(company) : null;
+  }
+
   async create(data: Partial<Company>): Promise<Company> {
     const company = await this.prisma.company.create({
       data: {
@@ -125,6 +141,99 @@ export class CompanyRepositoryImpl implements ICompanyRepository {
       },
     });
     return this.toDomain(company);
+  }
+
+  async upsertByRuc(data: UpsertCompanyData): Promise<Company> {
+    const company = await this.prisma.company.upsert({
+      where: { ruc: data.ruc },
+      create: {
+        ruc: data.ruc,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        industry: data.industry,
+        employeeCount: data.employeeCount,
+        location: data.location,
+        website: data.website,
+        logoUrl: data.logoUrl,
+        foundedYear: data.foundedYear,
+        isVerified: data.isVerified ?? false,
+        metadata: data.metadata ?? {},
+      },
+      update: {
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        industry: data.industry,
+        employeeCount: data.employeeCount,
+        location: data.location,
+        website: data.website,
+        logoUrl: data.logoUrl,
+        foundedYear: data.foundedYear,
+        isVerified: data.isVerified,
+        metadata: data.metadata,
+      },
+    });
+    return this.toDomain(company);
+  }
+
+  async bulkUpsertByRuc(items: UpsertCompanyData[]): Promise<BulkUpsertResult> {
+    const result: BulkUpsertResult = { total: items.length, created: 0, updated: 0, errors: [] };
+
+    // Process in batches of 50 using transactions
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < items.length; i += BATCH_SIZE) {
+      const batch = items.slice(i, i + BATCH_SIZE);
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const data of batch) {
+          try {
+            const existing = await tx.company.findUnique({ where: { ruc: data.ruc } });
+            if (existing) {
+              await tx.company.update({
+                where: { ruc: data.ruc },
+                data: {
+                  name: data.name,
+                  slug: data.slug,
+                  description: data.description,
+                  industry: data.industry,
+                  employeeCount: data.employeeCount,
+                  location: data.location,
+                  website: data.website,
+                  logoUrl: data.logoUrl,
+                  foundedYear: data.foundedYear,
+                  isVerified: data.isVerified,
+                  metadata: data.metadata,
+                },
+              });
+              result.updated++;
+            } else {
+              await tx.company.create({
+                data: {
+                  ruc: data.ruc,
+                  name: data.name,
+                  slug: data.slug,
+                  description: data.description,
+                  industry: data.industry,
+                  employeeCount: data.employeeCount,
+                  location: data.location,
+                  website: data.website,
+                  logoUrl: data.logoUrl,
+                  foundedYear: data.foundedYear,
+                  isVerified: data.isVerified ?? false,
+                  metadata: data.metadata ?? {},
+                },
+              });
+              result.created++;
+            }
+          } catch (error: any) {
+            result.errors.push({ ruc: data.ruc, error: error.message });
+          }
+        }
+      });
+    }
+
+    return result;
   }
 
   async delete(id: string): Promise<void> {

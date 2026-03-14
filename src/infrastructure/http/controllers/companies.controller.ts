@@ -9,16 +9,20 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery, ApiHeader } from '@nestjs/swagger';
 import {
   GetCompaniesUseCase,
   GetCompanyBySlugUseCase,
   GetCompanySlugsUseCase,
   CreateCompanyUseCase,
   UpdateCompanyUseCase,
+  UpsertCompanyUseCase,
+  BulkUpsertCompaniesUseCase,
 } from '../../../application/use-cases';
-import { CreateCompanyDto, UpdateCompanyDto } from '../dto';
+import { CreateCompanyDto, UpdateCompanyDto, UpsertCompanyDto, BulkUpsertCompaniesDto } from '../dto';
+import { ApiKeyGuard } from '../../auth/api-key.guard';
 
 @ApiTags('Companies')
 @Controller('companies')
@@ -29,6 +33,8 @@ export class CompaniesController {
     private readonly getCompanySlugs: GetCompanySlugsUseCase,
     private readonly createCompany: CreateCompanyUseCase,
     private readonly updateCompany: UpdateCompanyUseCase,
+    private readonly upsertCompany: UpsertCompanyUseCase,
+    private readonly bulkUpsertCompanies: BulkUpsertCompaniesUseCase,
   ) {}
 
   @Get()
@@ -72,6 +78,45 @@ export class CompaniesController {
       website: dto.website,
       logo: dto.logo,
     });
+  }
+
+  @Put('upsert')
+  @UseGuards(ApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Upsert a company by RUC (create or update)' })
+  @ApiHeader({ name: 'x-api-key', description: 'Admin API key', required: true })
+  @ApiBody({ type: UpsertCompanyDto })
+  @ApiResponse({ status: 200, description: 'Company upserted successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing API key' })
+  async upsert(@Body() dto: UpsertCompanyDto) {
+    return this.upsertCompany.execute({
+      ruc: dto.ruc,
+      name: dto.name,
+      slug: dto.slug,
+      description: dto.description,
+      industry: dto.industry,
+      employeeCount: dto.employeeCount,
+      location: dto.location,
+      website: dto.website,
+      logoUrl: dto.logoUrl,
+      foundedYear: dto.foundedYear,
+      isVerified: dto.isVerified,
+      metadata: dto.metadata,
+    });
+  }
+
+  @Post('bulk')
+  @UseGuards(ApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Bulk upsert companies by RUC (max 500 per request)' })
+  @ApiHeader({ name: 'x-api-key', description: 'Admin API key', required: true })
+  @ApiBody({ type: BulkUpsertCompaniesDto })
+  @ApiResponse({ status: 200, description: 'Bulk upsert result with created/updated/error counts' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing API key' })
+  async bulkUpsert(@Body() dto: BulkUpsertCompaniesDto) {
+    return this.bulkUpsertCompanies.execute(dto.companies);
   }
 
   @Put(':id')
