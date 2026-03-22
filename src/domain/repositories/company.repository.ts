@@ -47,6 +47,18 @@ export interface BulkUpsertResult {
   errors: Array<{ ruc: string; error: string }>;
 }
 
+export interface SyncResult {
+  mode: 'full' | 'delta';
+  sourceTotal: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  logoUpdated: number;
+  deleted: number;
+  errors: string[];
+  durationMs: number;
+}
+
 export interface ICompanyRepository {
   findAll(options?: FindAllOptions): Promise<PaginatedResult<Company>>;
   findAllSlugs(): Promise<CompanySlug[]>;
@@ -57,6 +69,7 @@ export interface ICompanyRepository {
   update(id: string, company: Partial<Company>): Promise<Company>;
   upsertByRuc(data: UpsertCompanyData): Promise<Company>;
   bulkUpsertByRuc(data: UpsertCompanyData[]): Promise<BulkUpsertResult>;
+  syncFromDev(mode: 'full' | 'delta'): Promise<SyncResult>;
   delete(id: string): Promise<void>;
   search(query: string): Promise<Company[]>;
 }

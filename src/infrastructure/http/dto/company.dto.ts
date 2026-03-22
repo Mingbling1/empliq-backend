@@ -251,3 +251,19 @@ export class BulkUpsertCompaniesDto {
   @Type(() => UpsertCompanyDto)
   companies: UpsertCompanyDto[];
 }
+
+// ============================================
+// SYNC COMPANIES DTO (trigger migration from empliq_dev)
+// ============================================
+export class SyncCompaniesDto {
+  @ApiProperty({
+    description: 'Sync mode: "full" = reset + migrate all, "delta" = only new/changed',
+    enum: ['full', 'delta'],
+    example: 'delta',
+    default: 'delta',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(full|delta)$/, { message: 'Mode must be "full" or "delta"' })
+  mode?: 'full' | 'delta' = 'delta';
+}

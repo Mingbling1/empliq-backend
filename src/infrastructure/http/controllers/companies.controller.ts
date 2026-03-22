@@ -20,8 +20,9 @@ import {
   UpdateCompanyUseCase,
   UpsertCompanyUseCase,
   BulkUpsertCompaniesUseCase,
+  SyncCompaniesUseCase,
 } from '../../../application/use-cases';
-import { CreateCompanyDto, UpdateCompanyDto, UpsertCompanyDto, BulkUpsertCompaniesDto } from '../dto';
+import { CreateCompanyDto, UpdateCompanyDto, UpsertCompanyDto, BulkUpsertCompaniesDto, SyncCompaniesDto } from '../dto';
 import { ApiKeyGuard } from '../../auth/api-key.guard';
 
 @ApiTags('Companies')
@@ -35,6 +36,7 @@ export class CompaniesController {
     private readonly updateCompany: UpdateCompanyUseCase,
     private readonly upsertCompany: UpsertCompanyUseCase,
     private readonly bulkUpsertCompanies: BulkUpsertCompaniesUseCase,
+    private readonly syncCompanies: SyncCompaniesUseCase,
   ) {}
 
   @Get()
@@ -140,6 +142,24 @@ export class CompaniesController {
       logo: dto.logo,
       removeLogo: dto.removeLogo,
     });
+  }
+
+  @Post('sync')
+  @UseGuards(ApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Sync companies from empliq_dev via cross-database query',
+    description:
+      'Triggers a migration from empliq_dev (raw scraper data) to empliq_prod. ' +
+      '"full" mode: deletes all and re-inserts everything (~85K in ~20s). ' +
+      '"delta" mode: only inserts new companies and updates changed data/logos.',
+  })
+  @ApiHeader({ name: 'x-api-key', description: 'Admin API key', required: true })
+  @ApiBody({ type: SyncCompaniesDto })
+  @ApiResponse({ status: 200, description: 'Sync result with statistics' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing API key' })
+  async sync(@Body() dto: SyncCompaniesDto) {
+    return this.syncCompanies.execute(dto.mode ?? 'delta');
   }
 
   @Get('slugs')
