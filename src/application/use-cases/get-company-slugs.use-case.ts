@@ -8,7 +8,7 @@ export class GetCompanySlugsUseCase {
     private readonly companyRepository: ICompanyRepository,
   ) {}
 
-  async execute(): Promise<CompanySlug[]> {
-    return this.companyRepository.findAllSlugs();
+  async execute(limit?: number): Promise<CompanySlug[]> {
+    return this.companyRepository.findAllSlugs(limit);
   }
 }

@@ -63,7 +63,7 @@ export interface SyncResult {
 
 export interface ICompanyRepository {
   findAll(options?: FindAllOptions): Promise<PaginatedResult<Company>>;
-  findAllSlugs(): Promise<CompanySlug[]>;
+  findAllSlugs(limit?: number): Promise<CompanySlug[]>;
   findById(id: string): Promise<Company | null>;
   findBySlug(slug: string): Promise<Company | null>;
   findByRuc(ruc: string): Promise<Company | null>;

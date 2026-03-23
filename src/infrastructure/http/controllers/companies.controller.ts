@@ -163,10 +163,11 @@ export class CompaniesController {
   }
 
   @Get('slugs')
-  @ApiOperation({ summary: 'Get all company slugs for sitemap generation' })
-  @ApiResponse({ status: 200, description: 'Array of {slug, updatedAt} for all companies' })
-  async findAllSlugs() {
-    return this.getCompanySlugs.execute();
+  @ApiOperation({ summary: 'Get company slugs for sitemap generation' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max number of slugs to return (ordered by employee count DESC)' })
+  @ApiResponse({ status: 200, description: 'Array of {slug, updatedAt, employeeCount, hasLogo}' })
+  async findAllSlugs(@Query('limit') limit?: string) {
+    return this.getCompanySlugs.execute(limit ? parseInt(limit, 10) : undefined);
   }
 
   @Get(':slug')
