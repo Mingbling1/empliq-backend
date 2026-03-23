@@ -18,3 +18,4 @@ export * from './add-review.use-case';
 export * from './toggle-review-vote.use-case';
 export * from './get-benefits-by-company.use-case';
 export * from './add-benefit.use-case';
+export * from './get-platform-stats.use-case';

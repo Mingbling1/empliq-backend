@@ -4,3 +4,4 @@ export * from './salaries.module';
 export * from './reviews.module';
 export * from './benefits.module';
 export * from './profiles.module';
+export * from './stats.module';

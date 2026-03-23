@@ -5,3 +5,4 @@ export * from './review.repository';
 export * from './benefit.repository';
 export * from './interview.repository';
 export * from './profile.repository';
+export * from './stats.repository';

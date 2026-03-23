@@ -6,6 +6,7 @@ import { SalariesModule } from './infrastructure/http/modules/salaries.module';
 import { ReviewsModule } from './infrastructure/http/modules/reviews.module';
 import { BenefitsModule } from './infrastructure/http/modules/benefits.module';
 import { ProfilesModule } from './infrastructure/http/modules/profiles.module';
+import { StatsModule } from './infrastructure/http/modules/stats.module';
 import { PrismaModule } from './infrastructure/persistence/prisma/prisma.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
 import { StorageModule } from './infrastructure/storage';
@@ -26,6 +27,7 @@ import { AppController } from './app.controller';
     ReviewsModule,
     BenefitsModule,
     ProfilesModule,
+    StatsModule,
   ],
   controllers: [AppController],
 })
