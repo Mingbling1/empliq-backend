@@ -23,6 +23,8 @@ export interface FindAllOptions {
 export interface CompanySlug {
   slug: string;
   updatedAt: Date;
+  employeeCount: number | null;
+  hasLogo: boolean;
 }
 
 export interface UpsertCompanyData {

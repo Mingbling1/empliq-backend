@@ -64,10 +64,18 @@ export class CompanyRepositoryImpl implements ICompanyRepository {
 
   async findAllSlugs(): Promise<CompanySlug[]> {
     const companies = await this.prisma.company.findMany({
-      select: { slug: true, updatedAt: true },
-      orderBy: { slug: 'asc' },
+      select: { slug: true, updatedAt: true, employeeCount: true, logoUrl: true },
+      orderBy: [
+        { employeeCount: { sort: 'desc', nulls: 'last' } },
+        { slug: 'asc' },
+      ],
     });
-    return companies.map((c) => ({ slug: c.slug, updatedAt: c.updatedAt }));
+    return companies.map((c) => ({
+      slug: c.slug,
+      updatedAt: c.updatedAt,
+      employeeCount: c.employeeCount,
+      hasLogo: !!c.logoUrl,
+    }));
   }
 
   async findById(id: string): Promise<Company | null> {
