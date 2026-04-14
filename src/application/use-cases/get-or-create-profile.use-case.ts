@@ -6,9 +6,32 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Profile } from '../../domain/entities/profile.entity';
 import { IProfileRepository, PROFILE_REPOSITORY } from '../../domain/repositories/profile.repository';
 
-const AVATAR_OPTIONS = Array.from({ length: 24 }, (_, i) =>
-  `/illustrations/avatars/avatar-${String(i + 1).padStart(2, '0')}.png`,
-);
+const AVATAR_OPTIONS = [
+  '/illustrations/avatars/avatar_2094458_01.png',
+  '/illustrations/avatars/avatar_2094458_02.png',
+  '/illustrations/avatars/avatar_2094458_03.png',
+  '/illustrations/avatars/avatar_2094458_04.png',
+  '/illustrations/avatars/avatar_2094458_05.png',
+  '/illustrations/avatars/avatar_2094458_06.png',
+  '/illustrations/avatars/avatar_2094458_07.png',
+  '/illustrations/avatars/avatar_2094458_08.png',
+  '/illustrations/avatars/avatar_2094458_09.png',
+  '/illustrations/avatars/avatar_Gemini_Generated_Image_vlmic5vlmic5vlmi_01.png',
+  '/illustrations/avatars/avatar_Gemini_Generated_Image_vlmic5vlmic5vlmi_02.png',
+  '/illustrations/avatars/avatar_Gemini_Generated_Image_vlmic5vlmic5vlmi_03.png',
+  '/illustrations/avatars/avatar_Gemini_Generated_Image_vlmic5vlmic5vlmi_04.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_01.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_02.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_03.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_04.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_05.png',
+  '/illustrations/avatars/avatar_people_communicating_various_ways_phone_call_laptop_chat_discussion_675502_1390_06.png',
+  '/illustrations/avatars/avatar_women_emotions_monochrome_flat_linear_character_heads_set_151150_15217_01.png',
+  '/illustrations/avatars/avatar_women_emotions_monochrome_flat_linear_character_heads_set_151150_15217_02.png',
+  '/illustrations/avatars/avatar_women_emotions_monochrome_flat_linear_character_heads_set_151150_15217_03.png',
+  '/illustrations/avatars/avatar_women_emotions_monochrome_flat_linear_character_heads_set_151150_15217_04.png',
+  '/illustrations/avatars/avatar_four_happy_women_portraits_black_white_1089355_401.png',
+];
 
 function getRandomAvatar(): string {
   return AVATAR_OPTIONS[Math.floor(Math.random() * AVATAR_OPTIONS.length)];
