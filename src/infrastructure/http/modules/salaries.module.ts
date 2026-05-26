@@ -24,5 +24,6 @@ import { PROFILE_REPOSITORY } from '../../../domain/repositories/profile.reposit
       useClass: ProfileRepositoryImpl,
     },
   ],
+  exports: [SALARY_REPOSITORY],
 })
 export class SalariesModule {}
