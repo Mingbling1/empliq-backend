@@ -4,8 +4,10 @@ import { GetPositionsByCompanyUseCase } from '../../../application/use-cases';
 import { CreatePositionUseCase } from '../../../application/use-cases/create-position.use-case';
 import { PositionRepositoryImpl } from '../../persistence/repositories';
 import { POSITION_REPOSITORY } from '../../../domain/repositories';
+import { SalariesModule } from './salaries.module';
 
 @Module({
+  imports: [SalariesModule],
   controllers: [PositionsController],
   providers: [
     GetPositionsByCompanyUseCase,
