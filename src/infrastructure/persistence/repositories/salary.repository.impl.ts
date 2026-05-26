@@ -18,7 +18,14 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
   async getStatsByPosition(positionId: string): Promise<SalaryStats | null> {
     const salaries = await this.prisma.salary.findMany({
       where: { positionId },
-      select: { amount: true, currency: true },
+      select: {
+        amount: true,
+        currency: true,
+        sourceType: true,
+        sourceName: true,
+        sourceUrl: true,
+        extractedAt: true,
+      },
     });
 
     if (salaries.length === 0) return null;
@@ -32,6 +39,34 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
         : sorted[Math.floor(sorted.length / 2)];
 
+    const sourceBreakdown = { USER_REPORTED: 0, AI_EXTRACTED: 0, IMPORTED: 0 };
+    for (const s of salaries) {
+      const t = (s.sourceType ?? 'USER_REPORTED') as keyof typeof sourceBreakdown;
+      sourceBreakdown[t] = (sourceBreakdown[t] ?? 0) + 1;
+    }
+    // USER_REPORTED wins ties because it's the most trustworthy signal (current employee).
+    const ranked: Array<keyof typeof sourceBreakdown> = ['USER_REPORTED', 'AI_EXTRACTED', 'IMPORTED'];
+    let dominantSource = ranked[0];
+    let maxCount = sourceBreakdown[dominantSource];
+    for (const t of ranked.slice(1)) {
+      if (sourceBreakdown[t] > maxCount) {
+        dominantSource = t;
+        maxCount = sourceBreakdown[t];
+      }
+    }
+
+    // Origin metadata is exposed only when every record agrees on (sourceName, sourceUrl).
+    // For mixed data we omit it; the UI shows the breakdown instead.
+    const uniqueSourceNames = new Set(salaries.map((s) => s.sourceName ?? ''));
+    const uniqueSourceUrls = new Set(salaries.map((s) => s.sourceUrl ?? ''));
+    const sourceName = uniqueSourceNames.size === 1 ? salaries[0].sourceName : null;
+    const sourceUrl = uniqueSourceUrls.size === 1 ? salaries[0].sourceUrl : null;
+    // Newest extractedAt — most useful date to show.
+    const extractedAt = salaries.reduce<Date | null>((latest, s) => {
+      if (!s.extractedAt) return latest;
+      return latest && latest > s.extractedAt ? latest : s.extractedAt;
+    }, null);
+
     return new SalaryStats(
       positionId,
       salaries.length,
@@ -40,6 +75,11 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
       Math.max(...amounts),
       Math.round(median),
       salaries[0].currency,
+      sourceBreakdown,
+      dominantSource,
+      sourceName,
+      sourceUrl,
+      extractedAt,
     );
   }
 

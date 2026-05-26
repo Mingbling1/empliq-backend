@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
-import { IsNumber, IsString, IsOptional, Min, IsArray, ValidateNested, ArrayMaxSize } from 'class-validator';
+import { IsNumber, IsString, IsOptional, Min, IsArray, ValidateNested, ArrayMaxSize, IsIn, IsISO8601, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
 import { GetSalaryStatsUseCase, AddSalaryUseCase } from '../../../application/use-cases';
 import { GetOrCreateProfileUseCase } from '../../../application/use-cases/get-or-create-profile.use-case';
@@ -56,7 +56,20 @@ class SeedSalaryItemDto {
 
   @IsString()
   @IsOptional()
-  source?: string;
+  @IsIn(['USER_REPORTED', 'AI_EXTRACTED', 'IMPORTED'])
+  sourceType?: 'USER_REPORTED' | 'AI_EXTRACTED' | 'IMPORTED';
+
+  @IsString()
+  @IsOptional()
+  sourceName?: string;
+
+  @IsUrl({ require_protocol: true })
+  @IsOptional()
+  sourceUrl?: string;
+
+  @IsISO8601()
+  @IsOptional()
+  extractedAt?: string;
 }
 
 class SeedSalariesDto {

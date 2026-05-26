@@ -1,6 +1,8 @@
 import { Inject, Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/persistence/prisma/prisma.service';
 
+export type SalarySourceType = 'USER_REPORTED' | 'AI_EXTRACTED' | 'IMPORTED';
+
 export interface SeedSalaryItem {
   companySlug: string;
   positionTitle: string;
@@ -9,7 +11,11 @@ export interface SeedSalaryItem {
   currency?: string;
   period?: string;
   yearsExperience?: number;
-  source?: string;
+  // Provenance: shown in the UI with a badge + tooltip. See SalarySource enum.
+  sourceType?: SalarySourceType;
+  sourceName?: string;
+  sourceUrl?: string;
+  extractedAt?: string; // ISO 8601
 }
 
 export interface SeedSalaryResult {
@@ -113,6 +119,10 @@ export class SeedSalariesUseCase {
             period: item.period || 'monthly',
             yearsExperience: item.yearsExperience || null,
             isVerified: false,
+            sourceType: item.sourceType || 'IMPORTED',
+            sourceName: item.sourceName || null,
+            sourceUrl: item.sourceUrl || null,
+            extractedAt: item.extractedAt ? new Date(item.extractedAt) : null,
           },
         });
 
